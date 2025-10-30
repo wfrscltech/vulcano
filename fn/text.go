@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-// Replacement structure
+// replacement estructura que contiene una expresión regular y su carácter de reemplazo
 type replacement struct {
 	re *regexp.Regexp
 	ch string
 }
 
-// Build regexps and replacements
+// rExps contiene las expresiones regulares para normalizar caracteres acentuados y especiales
 var (
 	rExps = []replacement{
 		{re: regexp.MustCompile(`[\xC0-\xC6]`), ch: "A"},
@@ -29,8 +29,11 @@ var (
 		{re: regexp.MustCompile(`[\xD1]`), ch: "N"},
 		{re: regexp.MustCompile(`[\xF1]`), ch: "n"},
 	}
-	spacereg       = regexp.MustCompile(`\s+`)
-	noncharreg     = regexp.MustCompile(`[^A-Za-z0-9\-/]`)
+	// spacereg expresión regular para encontrar uno o más espacios en blanco
+	spacereg = regexp.MustCompile(`\s+`)
+	// noncharreg expresión regular para encontrar caracteres que no son letras, números, guiones o barras
+	noncharreg = regexp.MustCompile(`[^A-Za-z0-9\-/]`)
+	// minusrepeatreg expresión regular para encontrar dos o más guiones consecutivos
 	minusrepeatreg = regexp.MustCompile(`\-{2,}`)
 )
 
