@@ -26,7 +26,7 @@ type Database interface {
 	// Transacciones
 	BeginTx(ctx context.Context) (Tx, error)
 
-	// Devuelve la conexión 'en crudo' para que pueda ser usada para operaciones no soportadas por la capa de negocio
+	// Devuelve la conexión 'en crudo' para que pueda ser usada para operaciones no soportadas
 	RawConnection() any
 }
 
