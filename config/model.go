@@ -10,8 +10,8 @@ import (
 
 type ServerConfig struct {
 	Port           int    `json:"port"`
-	LogLevel       string `json:"log_level"`
-	LogDestination string `json:"log_destination"`
+	LogLevel       string `json:"logLevel"`
+	LogDestination string `json:"logDestination"`
 }
 
 type DatabaseConfig struct {
