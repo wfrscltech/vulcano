@@ -5,25 +5,29 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 var Log *slog.Logger
 
-func Init(level slog.Level, dir string) {
+func Init(level slog.Level, logname, dir string) {
 	_ = os.MkdirAll(dir, 0755)
-	logFile := filepath.Join(dir, "vulcano.log")
+	var out io.Writer = os.Stdout
 
-	rotator := &lumberjack.Logger{
-		Filename:   logFile,
-		MaxSize:    10,
-		MaxBackups: 5,
-		MaxAge:     30,
-		Compress:   true,
+	if strings.HasPrefix(dir, "dir:") {
+		logFile := filepath.Join(dir[4:], logname+".log")
+		rotator := &lumberjack.Logger{
+			Filename:   logFile,
+			MaxSize:    10,
+			MaxBackups: 5,
+			MaxAge:     30,
+			Compress:   true,
+		}
+
+		out = io.MultiWriter(os.Stdout, rotator)
 	}
-
-	mw := io.MultiWriter(os.Stdout, rotator)
-	handler := slog.NewJSONHandler(mw, &slog.HandlerOptions{Level: level})
+	handler := slog.NewJSONHandler(out, &slog.HandlerOptions{Level: level})
 	Log = slog.New(handler)
 }
