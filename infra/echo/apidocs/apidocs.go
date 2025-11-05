@@ -50,14 +50,8 @@ const htmlBody = `<!DOCTYPE html>
 //go:embed static/*
 var staticFiles embed.FS
 
-var swinfo *swag.Spec
-
-func SetSwaggerInfo(info *swag.Spec) {
-	swinfo = info
-}
-
 // APIDocsManager Inicializa el endpoint de la documentación de la API
-func APIDocsManager(e *echo.Echo) {
+func APIDocsManager(e *echo.Echo, swinfo *swag.Spec) {
 	fsys, err := fs.Sub(staticFiles, "static")
 	if err != nil {
 		slog.Error("Error al cargar recursos estáticos", slog.String("error", err.Error()))
