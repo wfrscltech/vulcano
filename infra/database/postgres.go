@@ -30,7 +30,7 @@ type PostgresTx struct {
 	pgx.Tx
 }
 
-func NewPostgresCnx(dcfg *config.DatabaseConfig) (Database, error) {
+func NewPostgresCnx(dcfg config.DatabaseConfig) (Database, error) {
 	cnx, err := pgxpool.New(context.Background(), psqldsn(dcfg))
 	if err != nil {
 		return nil, err
@@ -135,7 +135,7 @@ func (tx *PostgresTx) Rollback(ctx context.Context) error {
 
 // --- Adaptador de conexión ---
 
-func psqldsn(dcfg *config.DatabaseConfig) string {
+func psqldsn(dcfg config.DatabaseConfig) string {
 	return fmt.Sprintf(
 		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
 		dcfg.User,

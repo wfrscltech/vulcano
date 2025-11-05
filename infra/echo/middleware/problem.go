@@ -1,37 +1,13 @@
 package middleware
 
-/*
-Middleware para transformar errores en Problem Details segun el RFC 9457
-
-Modo de uso:
-
-	e := echo.New()
-	// Usamos el middleware
-	e.Use(ProblemMiddleware)
-
-	// Ejemplo: recurso no encontrado
-	e.GET("/item/:id", func(c echo.Context) error {
-		id := c.Param("id")
-
-		// Forzamos un 404 usando echo.HTTPError
-		return echo.NewHTTPError(http.StatusNotFound, "Item "+id+" does not exist")
-	})
-
-	// Ejemplo: error interno simulado
-	e.GET("/panic", func(c echo.Context) error {
-		return fmt.Errorf("something went really wrong")
-	})
-
-	e.Logger.Fatal(e.Start(":8080"))
-
-*/
-
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/wfrscltech/vulcano/domain/mistake"
 )
 
 const baseDomain = "https://developer.mozilla.org"
@@ -79,7 +55,7 @@ var uriTypes = map[int]string{
 	http.StatusNetworkAuthenticationRequired: "/en-US/docs/Web/HTTP/Reference/Status/511",
 }
 
-// ProblemDetails Define los detalles de una respuesta de error
+// @Description Define los detalles de una respuesta de error
 type ProblemDetails struct {
 	// URI que identifica el tipo de problema
 	Type string `json:"type"`
@@ -93,6 +69,14 @@ type ProblemDetails struct {
 	Instance string `json:"instance"`
 }
 
+// @Description Representa un error de cliente
+type ClientError struct {
+	// Resumen general del error
+	Error string `json:"error"   example:"Invalid request"`
+	// Menasje más específico del error
+	Message string `json:"message" example:"El campo 'nombre' es obligatorio"`
+}
+
 // getType Obtiene el URI de la página de la especificación del código HTTP
 func getType(status int) string {
 	if t, ok := uriTypes[status]; ok {
@@ -103,9 +87,15 @@ func getType(status int) string {
 }
 
 // Helper para responder con Problem Details
-func writeProblem(c echo.Context, pd ProblemDetails) error {
+func writeProblem(c echo.Context, code int, msg, instance string) error {
 	c.Response().Header().Set("Content-Type", "application/problem+json")
-	return c.JSON(pd.Status, pd)
+	return c.JSON(code, ProblemDetails{
+		Type:     getType(code),
+		Title:    http.StatusText(code),
+		Status:   code,
+		Detail:   fmt.Sprint(msg),
+		Instance: instance,
+	})
 }
 
 // ProblemMiddleware Intercepta errores y los transforma a Problem Details
@@ -118,27 +108,29 @@ func ProblemMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		instance := fmt.Sprintf("[%s] %s", c.Request().Method, c.Request().RequestURI)
 
-		// Si el handler devolvió un *echo.HTTPError, lo convertimos
-		if he, ok := err.(*echo.HTTPError); ok {
-			pd := ProblemDetails{
-				Type:     getType(he.Code),
-				Title:    http.StatusText(he.Code),
-				Status:   he.Code,
-				Detail:   fmt.Sprint(he.Message),
-				Instance: instance,
+		var mk *mistake.Mistake
+		if errors.As(err, &mk) {
+			if mk.Code() == http.StatusInternalServerError {
+				slog.Error("Handle Mistake", slog.String("error", err.Error()))
+				return writeProblem(c, mk.Code(), mk.DevError(), instance)
 			}
-			slog.Error("Handle HTTP Error", slog.String("error", err.Error()))
-			return writeProblem(c, pd)
-		}
 
-		// Caso genérico: error inesperado
-		pd := ProblemDetails{
-			Type:     "about:blank",
-			Title:    "Internal Server Error",
-			Status:   http.StatusInternalServerError,
-			Detail:   err.Error(),
-			Instance: instance,
+			return c.JSON(mk.Code(), ClientError{Error: http.StatusText(mk.Code()), Message: mk.Error()})
+		} else {
+			// Si el handler devolvió un *echo.HTTPError, lo convertimos
+			if he, ok := err.(*echo.HTTPError); ok {
+				slog.Error("Handle HTTP Error", slog.String("error", err.Error()))
+				if he.Code >= http.StatusInternalServerError {
+					return writeProblem(c, he.Code, he.Message.(string), instance)
+				}
+
+				return c.JSON(he.Code, ClientError{Error: http.StatusText(he.Code), Message: he.Message.(string)})
+			} else {
+				// Error inesperado o no capturado
+				slog.Error("Handle Unknown Error", slog.String("error", err.Error()))
+				return writeProblem(c, http.StatusInternalServerError, err.Error(), instance)
+			}
 		}
-		return writeProblem(c, pd)
 	}
+
 }

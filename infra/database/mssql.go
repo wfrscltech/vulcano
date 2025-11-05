@@ -12,7 +12,7 @@ type MSSQL struct {
 	*sqlBase
 }
 
-func NewMSSQLCnx(dcfg *config.DatabaseConfig) (Database, error) {
+func NewMSSQLCnx(dcfg config.DatabaseConfig) (Database, error) {
 	cnx, err := newConnection("sqlserver", mssqldsn(dcfg))
 	if err != nil {
 		return nil, err
@@ -21,7 +21,7 @@ func NewMSSQLCnx(dcfg *config.DatabaseConfig) (Database, error) {
 	return &MSSQL{sqlBase: &sqlBase{DB: cnx}}, nil
 }
 
-func mssqldsn(dcfg *config.DatabaseConfig) string {
+func mssqldsn(dcfg config.DatabaseConfig) string {
 	return fmt.Sprintf(
 		"sqlserver://%s:%s@%s:%d?database=%s&encrypt=disable",
 		dcfg.User,
