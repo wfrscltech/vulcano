@@ -4,6 +4,8 @@ import (
 	"context"
 )
 
+var cxn Database
+
 // Row representa un registro de la base de datos
 type Row interface {
 	Scan(dest ...any) error
@@ -37,4 +39,12 @@ type Tx interface {
 	Exec(ctx context.Context, query string, args ...any) (int64, error)
 	Commit(ctx context.Context) error
 	Rollback(ctx context.Context) error
+}
+
+func SetDatabase(db Database) {
+	cxn = db
+}
+
+func GetDatabase() Database {
+	return cxn
 }
