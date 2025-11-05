@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/wfrscltech/vulcano/fn"
@@ -33,7 +34,7 @@ func (d *DatabaseConfig) IsValid() error {
 		return errors.New("database.*: todos los campos son obligatorios")
 	}
 
-	if d.Port >= 1024 {
+	if d.Port <= 1024 {
 		return errors.New("database.port: el valor no puede ser menor a 1024")
 	}
 
@@ -53,22 +54,22 @@ func (s *ServerConfig) IsValid() error {
 		return errors.New("server.*: todos los campos son obligatorios")
 	}
 
-	if s.Port >= 1024 {
+	if s.Port <= 1024 {
 		return errors.New("server.port: el valor no puede ser menor a 1024")
 	}
 
 	if !(strings.HasPrefix(s.LogDestination, "stdout") ||
 		strings.HasPrefix(s.LogDestination, "stderr") ||
-		strings.HasPrefix(s.LogDestination, "file")) {
+		strings.HasPrefix(s.LogDestination, "dir")) {
 
 		return errors.New(
-			"server.log_destination: el destino de log debe ser `stdout`, `stderr`, `file:</ruta/al/archivo.log>` o `file:<Unidad:\\ruta\\al\\archivo.log>`",
+			"server.logDestination: el destino de log debe ser `stdout`, `stderr`, `dir:</ruta/al/directorio/log>` o `file:<Unidad:\\ruta\\al\\directorio\\log>`",
 		)
 	}
 
 	if !fn.In(s.LogLevel, supportedLogLevels...) {
 		return fmt.Errorf(
-			"server.log_level: el valor `%s` no es un nivel de log válido. Las opciones válidas son: %q",
+			"server.logLevel: el valor `%s` no es un nivel de log válido. Las opciones válidas son: %q",
 			s.LogLevel,
 			supportedLogLevels,
 		)
@@ -87,4 +88,19 @@ func (c *Config) IsValid() error {
 	}
 
 	return nil
+}
+
+func SlogLevel(s string) slog.Level {
+	switch s {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warning":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
 }

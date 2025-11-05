@@ -315,7 +315,7 @@ func TestServerConfigIsValid_Failures(t *testing.T) {
 				LogLevel:       "info",
 				LogDestination: "syslog",
 			},
-			expectedError: "server.log_destination: el destino de log debe ser",
+			expectedError: "server.logDestination: el destino de log debe ser",
 		},
 		{
 			name: "LogLevel inválido",
@@ -324,7 +324,7 @@ func TestServerConfigIsValid_Failures(t *testing.T) {
 				LogLevel:       "critical",
 				LogDestination: "stdout",
 			},
-			expectedError: "server.log_level: el valor `critical` no es un nivel de log válido",
+			expectedError: "server.logLevel: el valor `critical` no es un nivel de log válido",
 		},
 		{
 			name: "Múltiples campos inválidos",
@@ -444,8 +444,8 @@ func TestReadJSON_Success(t *testing.T) {
 	content := `{
 		"server": {
 			"port": 80,
-			"log_level": "info",
-			"log_destination": "stdout"
+			"logLevel": "info",
+			"logDestination": "stdout"
 		},
 		"database": {
 			"host": "localhost",
@@ -507,7 +507,7 @@ func TestReadJSON_Failures(t *testing.T) {
 		},
 		{
 			name:          "JSON con tipo incorrecto",
-			content:       `{"server": {"port": "not-a-number", "log_level": "info", "log_destination": "stdout"}}`,
+			content:       `{"server": {"port": "not-a-number", "logLevel": "info", "logDestination": "stdout"}}`,
 			expectedError: "el cuerpo contiene JSON de tipo incorrecto",
 		},
 		{
@@ -565,8 +565,8 @@ func TestRead_Success(t *testing.T) {
 	content := `{
 		"server": {
 			"port": 999,
-			"log_level": "debug",
-			"log_destination": "file:/var/log/app.log"
+			"logLevel": "debug",
+			"logDestination": "file:/var/log/app.log"
 		},
 		"database": {
 			"host": "192.168.1.100",
@@ -636,8 +636,8 @@ func TestRead_Failures(t *testing.T) {
 			content: `{
 				"server": {
 					"port": 0,
-					"log_level": "info",
-					"log_destination": "stdout"
+					"logLevel": "info",
+					"logDestination": "stdout"
 				},
 				"database": {
 					"host": "localhost",
@@ -656,8 +656,8 @@ func TestRead_Failures(t *testing.T) {
 			content: `{
 				"server": {
 					"port": 80,
-					"log_level": "info",
-					"log_destination": "stdout"
+					"logLevel": "info",
+					"logDestination": "stdout"
 				},
 				"database": {
 					"host": "localhost",
