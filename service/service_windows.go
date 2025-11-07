@@ -10,7 +10,7 @@ import (
 )
 
 func RunAsService(name string, log *slog.Logger, run func()) error {
-	if !svc.IsWindowsService() {
+	if ok, _ := svc.IsWindowsService(); !ok {
 		run()
 		return nil
 	}
