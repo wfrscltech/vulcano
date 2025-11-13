@@ -30,7 +30,7 @@ type PostgresTx struct {
 	pgx.Tx
 }
 
-func NewPostgresCnx(dcfg config.DatabaseConfig) (Database, error) {
+func newPostgresCnx(dcfg config.DatabaseConfig) (Database, error) {
 	cnx, err := pgxpool.New(context.Background(), psqldsn(dcfg))
 	if err != nil {
 		return nil, err

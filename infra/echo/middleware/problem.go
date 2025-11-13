@@ -124,7 +124,8 @@ func ProblemMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 					return writeProblem(c, he.Code, he.Message.(string), instance)
 				}
 
-				return c.JSON(he.Code, ClientError{Error: http.StatusText(he.Code), Message: he.Message.(string)})
+				var msg = fmt.Sprintf("%s", he.Message)
+				return c.JSON(he.Code, ClientError{Error: http.StatusText(he.Code), Message: msg})
 			} else {
 				// Error inesperado o no capturado
 				slog.Error("Handle Unknown Error", slog.String("error", err.Error()))

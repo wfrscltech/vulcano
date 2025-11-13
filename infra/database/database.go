@@ -2,9 +2,12 @@ package database
 
 import (
 	"context"
+	"fmt"
+
+	"github.com/wfrscltech/vulcano/config"
 )
 
-var cxn Database
+var cnx Database
 
 // Row representa un registro de la base de datos
 type Row interface {
@@ -41,10 +44,20 @@ type Tx interface {
 	Rollback(ctx context.Context) error
 }
 
-func SetDatabase(db Database) {
-	cxn = db
+func GetDatabase() Database {
+	return cnx
 }
 
-func GetDatabase() Database {
-	return cxn
+func New(dcfg config.DatabaseConfig) error {
+	var err error = nil
+	switch dcfg.Typo {
+	case "postgres":
+		cnx, err = newPostgresCnx(dcfg)
+		return err
+	case "mssql":
+		cnx, err = newMSSQLCnx(dcfg)
+		return err
+	default:
+		return fmt.Errorf("no se reconoce el tipo de base de datos %s", dcfg.Typo)
+	}
 }

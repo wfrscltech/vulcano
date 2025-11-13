@@ -12,7 +12,7 @@ type MSSQL struct {
 	*sqlBase
 }
 
-func NewMSSQLCnx(dcfg config.DatabaseConfig) (Database, error) {
+func newMSSQLCnx(dcfg config.DatabaseConfig) (Database, error) {
 	cnx, err := newConnection("sqlserver", mssqldsn(dcfg))
 	if err != nil {
 		return nil, err
